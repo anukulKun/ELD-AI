@@ -118,4 +118,6 @@ This repo includes a `Dockerfile` and `render.yaml` for deploying the full app a
    - `routeguard-eld-db`: the Postgres database
 4. After deploy, open the public `onrender.com` URL Render assigns to the web service.
 
+Note: the current Render free tier can spin the service down after inactivity. The first request after a quiet period may take 50 seconds or more while the app starts again.
+
 For local development, keep using the separate backend and frontend commands above.
