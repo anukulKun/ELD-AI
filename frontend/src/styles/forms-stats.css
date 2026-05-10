@@ -76,6 +76,7 @@
   text-align: center;
 }
 .btn-secondary:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+.btn-secondary.clear-active { grid-column: 1 / -1; color: var(--danger); }
 .btn-primary {
   padding: 11px 16px;
   background: var(--accent);

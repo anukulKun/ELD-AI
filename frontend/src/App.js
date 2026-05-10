@@ -11,6 +11,7 @@ const LOADING_MESSAGES = [
   'Generating daily log sheets...',
   'Building stop plan...',
 ];
+const HISTORY_LIMIT = 12;
 
 function App() {
   const [currentPage, setCurrentPage] = useState('planner');
@@ -26,7 +27,7 @@ function App() {
     cycle_hours_used: 14,
   });
   const [tripPlan, setTripPlan] = useState(() => readStorage('routeguard-last-plan', null));
-  const [history, setHistory] = useState(() => readStorage('routeguard-history', []));
+  const [history, setHistory] = useState(() => readStorage('routeguard-history', []).map(summarizeTrip));
   const [selectedHistoryId, setSelectedHistoryId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -41,11 +42,12 @@ function App() {
   }, [currentPage, history, selectedHistoryId, tripPlan]);
 
   useEffect(() => {
-    if (tripPlan) localStorage.setItem('routeguard-last-plan', JSON.stringify(tripPlan));
+    if (tripPlan) writeStorage('routeguard-last-plan', tripPlan);
+    else localStorage.removeItem('routeguard-last-plan');
   }, [tripPlan]);
 
   useEffect(() => {
-    localStorage.setItem('routeguard-history', JSON.stringify(history.slice(0, 12)));
+    writeStorage('routeguard-history', history.slice(0, HISTORY_LIMIT).map(summarizeTrip));
   }, [history]);
 
   // FIX UI-5: persist the visual theme on the document root so CSS variables can flip the whole app.
@@ -76,7 +78,7 @@ function App() {
         status: plan.compliance_status === 'VIOLATION' ? 'ERR' : plan.warnings?.length ? 'WARN' : 'OK',
       };
       setTripPlan(storedPlan);
-      setHistory((prev) => [storedPlan, ...prev.filter((trip) => trip.trip_id !== storedPlan.trip_id)]);
+      setHistory((prev) => [summarizeTrip(storedPlan), ...prev.filter((trip) => trip.trip_id !== storedPlan.trip_id)].slice(0, HISTORY_LIMIT));
       setSelectedHistoryId(storedPlan.trip_id);
       setPlannerTab('overview');
       setCurrentPage('planner');
@@ -97,7 +99,15 @@ function App() {
 
   const handleHistorySelect = (plan) => {
     setSelectedHistoryId(plan.trip_id);
-    setTripPlan(plan);
+    if (plan.route && plan.daily_logs) setTripPlan(plan);
+    else setCurrentPage('history');
+  };
+
+  const handleClearActiveTrip = () => {
+    setTripPlan(null);
+    setSelectedHistoryId(null);
+    setPlannerTab('overview');
+    localStorage.removeItem('routeguard-last-plan');
   };
 
   return (
@@ -138,6 +148,7 @@ function App() {
           onPageChange={setCurrentPage}
           onPlannerTabChange={setPlannerTab}
           onHistorySelect={handleHistorySelect}
+          onClearActiveTrip={handleClearActiveTrip}
           fieldErrors={fieldErrors}
         />
         <main className="workspace">
@@ -196,6 +207,48 @@ function readStorage(key, fallback) {
   } catch {
     return fallback;
   }
+}
+
+function writeStorage(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (error) {
+    if (error?.name === 'QuotaExceededError') {
+      localStorage.removeItem(key);
+      return false;
+    }
+    throw error;
+  }
+}
+
+function summarizeTrip(trip) {
+  if (!trip) return {};
+  return {
+    trip_id: trip.trip_id,
+    trip_title: trip.trip_title,
+    start_location: trip.start_location,
+    pickup_location: trip.pickup_location,
+    dropoff_location: trip.dropoff_location,
+    driver_name: trip.driver_name,
+    total_distance_miles: trip.total_distance_miles,
+    total_driving_hours: trip.total_driving_hours,
+    status: trip.status,
+    compliance_status: trip.compliance_status,
+    created_at: trip.created_at,
+    start_time: trip.start_time,
+    summary: {
+      eta: trip.summary?.eta,
+      planned_stops: trip.summary?.planned_stops,
+    },
+    form: trip.form,
+    log_summaries: (trip.daily_logs || trip.log_summaries || []).map((log) => ({
+      day: log.day,
+      date: log.date,
+      hos_summary: log.hos_summary,
+      shift_drive_breakdown: log.shift_drive_breakdown,
+    })),
+  };
 }
 
 export default App;

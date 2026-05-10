@@ -8,7 +8,7 @@ const RULESET_LIMITS = {
   'alaska-80-hour/8-day': { drive: 15, window: 20, cycle: '80 hrs / 8 days' },
 };
 
-function Sidebar({ formData, loading, tripPlan, history, onFormChange, onSubmit, onPageChange, onPlannerTabChange, onHistorySelect, fieldErrors }) {
+function Sidebar({ formData, loading, tripPlan, history, onFormChange, onSubmit, onPageChange, onPlannerTabChange, onHistorySelect, onClearActiveTrip, fieldErrors }) {
   const [tab, setTab] = useState('new');
   const limits = RULESET_LIMITS[formData.hos_rules] || RULESET_LIMITS['70-hour/8-day'];
 
@@ -31,6 +31,7 @@ function Sidebar({ formData, loading, tripPlan, history, onFormChange, onSubmit,
             <div className="sidebar-action-row">
               <button className="btn-secondary" type="button" onClick={() => { onPageChange('planner'); onPlannerTabChange('logs'); }}>View Logs</button>
               <button className="btn-secondary" type="button" onClick={() => onPageChange('dashboard')}>View HOS</button>
+              <button className="btn-secondary clear-active" type="button" onClick={onClearActiveTrip}>Clear Active</button>
             </div>
           </section>
         )}
