@@ -2,6 +2,8 @@
 
 RouteGuard is a full-stack ELD trip planner for commercial drivers and dispatch teams. It combines a Django REST API with a React operations dashboard to plan multi-stop trips, calculate hours-of-service constraints, and generate driver-ready daily log sheets.
 
+![RouteGuard running on Render](image.png)
+
 ## Features
 
 - Plan routes from current location to pickup and dropoff
@@ -119,9 +121,5 @@ This repo includes a `Dockerfile` and `render.yaml` for deploying the full app a
 4. After deploy, open the public `onrender.com` URL Render assigns to the web service.
 
 Note: the current Render free tier can spin the service down after inactivity. The first request after a quiet period may take 50 seconds or more while the app starts again.
-
-Live deployment example:
-
-![RouteGuard running on Render](image.png)
 
 For local development, keep using the separate backend and frontend commands above.
