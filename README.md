@@ -106,3 +106,16 @@ npm.cmd run build
 ```
 
 The frontend currently has no test files, so `npm.cmd test -- --watchAll=false` exits with React's `No tests found` message.
+
+## Deploying Publicly
+
+This repo includes a `Dockerfile` and `render.yaml` for deploying the full app as one Render web service. The Docker build compiles the React frontend, serves it through Django, runs migrations on startup, and uses Render Postgres through `DATABASE_URL`.
+
+1. Push this repository to GitHub.
+2. In Render, choose **New > Blueprint** and select the repository.
+3. Confirm the `render.yaml` blueprint. Render will create:
+   - `routeguard-eld`: the public web service
+   - `routeguard-eld-db`: the Postgres database
+4. After deploy, open the public `onrender.com` URL Render assigns to the web service.
+
+For local development, keep using the separate backend and frontend commands above.
